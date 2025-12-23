@@ -1,0 +1,31 @@
+1. Check nexus server
+    [root@ip-172-31-18-87 ~]# systemctl status nexus
+    ● nexus.service - nexus service
+         Loaded: loaded (/etc/systemd/system/nexus.service; enabled; preset: disabled)
+         Active: active (running) since Mon 2025-12-22 08:48:04 UTC; 7min ago
+       Main PID: 26219 (java)
+          Tasks: 73 (limit: 4666)
+         Memory: 1.8G
+            CPU: 1min 15.151s
+         CGroup: /system.slice/nexus.service
+                 └─26219 /opt/nexus/nexus-3.78.0-14/jdk/temurin_17.0.13_11_linux_x86_64/jdk-17.0.13+11/bin/java -server -XX:+UnlockDiagnosticVMOptions -Xms2703m -Xmx2703m -XX:+UnlockDiagnosticVMOptions -XX:+LogVMO>
+
+    Dec 22 08:48:03 ip-172-31-18-87.ec2.internal systemd[1]: Starting nexus.service - nexus service...
+    Dec 22 08:48:04 ip-172-31-18-87.ec2.internal nexus[25991]: Starting nexus
+    Dec 22 08:48:04 ip-172-31-18-87.ec2.internal systemd[1]: Started nexus.service - nexus service.
+    lines 1-13/13 (END)
+
+    [root@ip-172-31-18-87 ~]# ls /opt/nexus/
+    nexus-3.78.0-14  sonatype-work
+    [root@ip-172-31-18-87 ~]# java -version
+    openjdk version "17.0.17" 2025-10-21 LTS
+    OpenJDK Runtime Environment Corretto-17.0.17.10.1 (build 17.0.17+10-LTS)
+    OpenJDK 64-Bit Server VM Corretto-17.0.17.10.1 (build 17.0.17+10-LTS, mixed mode, sharing)
+    [root@ip-172-31-18-87 ~]#
+
+2. Login to Nexus UI get password
+    [root@ip-172-31-18-87 ~]# cat /opt/nexus/sonatype-work/nexus3/admin.password
+    86a61a61-1b42-4eb0-818d-a0b8a3fdd2be
+    [root@ip-172-31-18-87 ~]#
+
+3. ALL code in Jenkinsfile

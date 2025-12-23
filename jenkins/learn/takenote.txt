@@ -1,0 +1,46 @@
+Jenkins main features:
+1. OpenSource
+2. Extensible (1800+plugins)
+
+Require:
+Java, JRE, JDK
+
+Download: for ubuntu:
+https://www.jenkins.io/doc/book/installing/linux/#debianubuntu
+
+CMD setup:
+    sudo -i
+    sudo apt update
+    sudo apt install fontconfig openjdk-21-jre
+    java -version
+
+    sudo wget -O /etc/apt/keyrings/jenkins-keyring.asc \
+      https://pkg.jenkins.io/debian/jenkins.io-2023.key
+    echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc]" \
+      https://pkg.jenkins.io/debian binary/ | sudo tee \
+      /etc/apt/sources.list.d/jenkins.list > /dev/null
+    sudo apt update
+    sudo apt install jenkins
+
+Check system status:
+    systemctl status jenkins
+
+Home directory of jenkins:
+    root@ip-172-31-21-24:~# ls /var/lib/jenkins/
+    config.xml                        nodeMonitors.xml          secrets
+    hudson.model.UpdateCenter.xml     plugins                   updates
+    jenkins.telemetry.Correlator.xml  secret.key                userContent
+    jobs                              secret.key.not-so-secret  users
+Host in port:
+    8080
+
+You can access through: ip_add:8080, and it will ask the admin password
+    Unlock Jenkins
+    To ensure Jenkins is securely set up by the administrator, a password has been written to the log (not sure where to find it?) and this file on the server:
+    /var/lib/jenkins/secrets/initialAdminPassword
+    Please copy the password from either location and paste it below.
+
+How to find pass:
+    root@ip-172-31-21-24:~# cat /var/lib/jenkins/secrets/initialAdminPassword
+    96449ecda301462789db59fd0ac78***
+

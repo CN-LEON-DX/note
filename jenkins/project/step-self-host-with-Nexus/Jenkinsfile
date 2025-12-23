@@ -1,0 +1,105 @@
+// created by fuzzyfox
+def COLOR_MAP = [
+	'SUCCESS': 'good',
+	'FAILURE': 'danger',
+]
+pipeline {
+	agent any
+	tools {
+		maven "maven3.9"
+		jdk "JDK17"
+	}
+
+	stages {
+		stage("Fetch code"){
+			steps{
+				git branch: 'atom', url: 'https://github.com/hkhcoder/vprofile-project.git'
+			}
+		}
+
+
+		stage("Build"){
+			steps{
+				sh 'mvn install -DskipTests'
+			}
+			post {
+				success{
+					echo "Archining artifact"
+					archiveArtifacts artifacts: '**/*.war'
+				}
+			}
+		}
+
+		stage("Unit test"){
+			steps{
+				sh 'mvn test'
+			}
+		}
+		stage("CheckStyle analysis"){
+			steps{
+				sh 'mvn checkstyle:checkstyle'
+			}
+		}
+
+		stage("Sonar code analysis"){
+			environment {
+				scannerHome = tool 'sonar6.2' // the name when you add in scanner
+			}
+			steps{
+				withSonarQubeEnv('sonarserver'){
+					sh '''${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=vprofile \
+                   -Dsonar.projectName=vprofile-repo \
+                   -Dsonar.projectVersion=1.0 \
+                   -Dsonar.sources=src/ \
+                   -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
+                   -Dsonar.junit.reportsPath=target/surefire-reports/ \
+                   -Dsonar.jacoco.reportsPath=target/jacoco.exec \
+                   -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml'''
+				}
+			}
+		}
+		// setup: create quality gate -> create webhook for contact
+		stage("Quality Gate"){
+			steps{
+				timeout(time:1, unit:'HOURS'){
+					waitForQualityGate abortPipeline: true
+				}
+			}
+		}
+		// preferences ;<
+		//https://plugins.jenkins.io/nexus-artifact-uploader/
+		stage("Upload artifact"){
+			steps{
+				nexusArtifactUploader(
+					nexusVersion: 'nexus3',
+					protocol: 'http', // connect private
+					nexusUrl: '172.31.18.87:8081', // private ip and service port number run nexus
+					groupId: 'QA', // quality assurance
+					version: "${env.BUILD_ID}-${env.BUILD_TIMESTAMP}",
+					repository: 'project01',
+					credentialsId: 'nexuslogin', // -> manage jenkins -> credentials -> and -> find the id you just set
+					artifacts: [
+						[artifactId: 'project01',
+						 classifier: '',
+						 file: 'target/vprofile-v2.war',
+						 type: 'war']
+					]
+				 )
+			}
+		}
+
+
+	}
+
+	// notifications with Slack
+	post {
+		always {
+			echo 'Slack notifications.'
+			slackSend channel: '#all-it',
+				color: COLOR_MAP[currentBuild.currentResult], // function above
+				//message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} "
+				message: """*${currentBuild.currentResult}:* Job *${env.JOB_NAME}* build *#${env.BUILD_NUMBER}*
+<${env.BUILD_URL}|Open build in Jenkins>"""
+		}
+	}
+}

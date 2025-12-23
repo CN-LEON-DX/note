@@ -1,0 +1,11 @@
+ apt install openjdk-17-jdk -y
+
+root@ip-172-31-21-24:~# ls /usr/lib/jvm/
+java-1.17.0-openjdk-amd64  java-1.21.0-openjdk-amd64  java-17-openjdk-amd64  java-21-openjdk-amd64  openjdk-17
+root@ip-172-31-21-24:~#
+
+When setup Tools:
+1. JDK
+    JDK depends on which version you install manually or automatic install
+    and you have to chose where the path is
+    -> If you app run in JDK 17 -> path JAVA_HOME =  /usr/lib/jvm/java-17-openjdk-amd64
