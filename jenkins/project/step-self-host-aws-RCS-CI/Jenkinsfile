@@ -14,6 +14,8 @@ pipeline {
         registryCredential = 'ecr:us-east-1:awscreds'
         imageName = "565393070765.dkr.ecr.us-east-1.amazonaws.com/project02-app-img"
         projectRegistry = "https://565393070765.dkr.ecr.us-east-1.amazonaws.com"
+		cluster = "ambitious-horse-hga8ey"
+		service = "project02-app-task-service"
     }
   stages {
         stage('Fetch code') {
@@ -97,6 +99,15 @@ pipeline {
                 sh 'docker rmi -f $(docker images -a -q)'
             }
         }
+		// deploy to ECS
+	  	stage('Deploy to ECS'){
+			steps{
+				withAWS(credentials: 'awscreds', region:'us-east-1'){
+					// get latest img -> run container -> run task
+					sh 'aws ecs update-service --cluster ${cluster} --service ${service} --force-new-deployment'
+				}
+			}
+		}
   }
 
     // notifications with Slack
@@ -110,4 +121,6 @@ pipeline {
 <${env.BUILD_URL}|Open build in Jenkins>"""
 		}
 	}
+
+
 }

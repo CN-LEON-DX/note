@@ -58,3 +58,6 @@ You need to set up to run IN Jenkins:
     uid=111(jenkins) gid=113(jenkins) groups=113(jenkins),988(docker)
     root@ip-172-31-21-24:~# 
     ```
+  
+- Create ECS cluster + service (task run)
+- run file Jenkins and configs
