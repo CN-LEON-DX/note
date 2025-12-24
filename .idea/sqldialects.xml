@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/github-actions/action-test/Docker-files/db/db_backup.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/github-actions/action-test/src/main/resources/accountsdb.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/github-actions/action-test/src/main/resources/db_backup.sql" dialect="GenericSQL" />
+  </component>
+</project>

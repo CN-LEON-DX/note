@@ -76,10 +76,10 @@ pipeline {
 					nexusUrl: '172.31.18.87:8081', // private ip and service port number run nexus
 					groupId: 'QA', // quality assurance
 					version: "${env.BUILD_ID}-${env.BUILD_TIMESTAMP}",
-					repository: 'project01',
+					repository: 'gitlab',
 					credentialsId: 'nexuslogin', // -> manage jenkins -> credentials -> and -> find the id you just set
 					artifacts: [
-						[artifactId: 'project01',
+						[artifactId: 'gitlab',
 						 classifier: '',
 						 file: 'target/vprofile-v2.war',
 						 type: 'war']
