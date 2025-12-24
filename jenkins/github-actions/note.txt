@@ -1,0 +1,15 @@
+github-actions is:
+    1. A cicd platform build for github
+    2. Uses workflows define in YAMLs file
+    3. Automate task: testing, building, deployment, notification
+    4. native integration GitHub ecosystem
+    5. Huge marketplace of prebuild actions
+    6. Scalable runner (linux, win, ,,,)
+    7. Flexible event triggers
+
+Core-concept:
+    Workflow: automate process YAML
+    Job: set of steps, run on a runner
+    Step: single task (run script/ use action)
+    Action: reusable piece of automation
+    Runner: server where run this job

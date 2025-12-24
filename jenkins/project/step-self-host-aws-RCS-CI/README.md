@@ -61,3 +61,5 @@ You need to set up to run IN Jenkins:
   
 - Create ECS cluster + service (task run)
 - run file Jenkins and configs
+- You want to Clean project -> Go to service -> change -> 'desired tassk' to -> 0 first 
+- Then delete service 

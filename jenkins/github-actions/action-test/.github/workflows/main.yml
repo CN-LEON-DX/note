@@ -1,0 +1,115 @@
+name: Build WF
+
+on:
+  push:
+    branches: 
+      - main
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+  # schedule:
+  #   - cron: "10 14 * * *" #everyday run at 14H 10Min UTC 
+
+env:
+  ECR_REPOSITORY: 'project-app-img'
+
+# only read for GITHUB_TOKEN use in wflow cus -> has read + write
+permissions:
+  contents: read
+    
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: code checkout
+        uses: actions/checkout@v4
+        with: 
+          fetch-depth: 0
+      - name: maven build
+        run: mvn install
+
+      - name: upload build Artifact
+        uses: actions/upload-artifact@v4
+        with: 
+            name: project-app
+            path: target/*.war 
+
+      - name: notify if build fail
+        if: failure()
+        run: echo "build job fail please check logs"
+
+  Testing:
+    runs-on: ubuntu-latest
+    needs: Build
+    steps:
+      - name: code checkout
+        uses: actions/checkout@v4
+
+      # only push or PR to main -> test
+      - name: run test on main branch
+        if: github.ref == 'refs/heads/main'
+        run: mvn test
+      - name: check style code
+        if: github.ref == 'refs/heads/main'
+        run: mvn checkstyle:checkstyle
+
+      - name: if run test on other branchs
+        if: github.ref != 'refs/heads/main'
+        run: echo "skipping unit test and code analysis"
+  
+  Security_Scan:
+    runs-on: ubuntu-latest
+    needs: Build
+    steps:
+      - name: code checkout
+        uses: actions/checkout@v4
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: json
+          exit-code: 0
+          vuln-type: os,library
+          output: trivy-results.json
+      
+      - name: Upload Trivy scan results as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-scan-results
+          path: trivy-results.json
+
+  Build_and_publish_img:
+    name: build_and_publish
+    runs-on: ubuntu-latest
+    environment: production
+    needs: [Build, Testing, Security_Scan]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: code checkout
+        uses: actions/checkout@v4
+        with: 
+          fetch-depth: 0
+      - name: config aws creds
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+        id: login-erc
+      
+      - name: build, tag, and push image to ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-erc.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -f Docker-files/app/multistage/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+      
