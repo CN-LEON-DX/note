@@ -1,0 +1,31 @@
+---
+- name: DB server setup
+  hosts: dbservers
+  become: yes
+  tasks:
+    - name: install maria db server
+      ansible.builtin.yum:
+        name: mariadb-server
+        state: present
+    - name: install python for exec cmd database python3-PyMySQL
+      ansible.builtin.yum:
+        name: python3-PyMySQL
+        state: present
+    - name: start service
+      ansible.builtin.service:
+        name: mariadb
+        state: started
+        enabled: yes
+    - name: create new database 'accounts'
+      community.mysql.mysql_db:
+        name: accounts
+        state: present
+        login_unix_socket: /var/lib/mysql/mysql.sock
+
+    - name: create new database user 'accounts'
+      community.mysql.mysql_user:
+        name: dev
+        password: 'admin123'
+        priv: '*.*:ALL'
+        state: present
+        login_unix_socket: /var/lib/mysql/mysql.sock
