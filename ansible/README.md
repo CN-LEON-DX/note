@@ -1,3 +1,5 @@
+### 1. SETUP ANSIBLE 
+
 - Create 4 EC2 instance:
     + 1 for ansible server for control
     + 2 for host web
@@ -129,7 +131,7 @@ web02 | CHANGED => {
 }
 ```
 
-### Playbook
+### 2. Playbook
 
 - written in YAML format
 - Collections of play - task?
@@ -235,7 +237,7 @@ db01                       : ok=4    changed=1    unreachable=0    failed=1    s
 
 - => So you can fix with add new agr: login_unix_socket: **_/var/lib/mysql/mysql.sock_** when create db
 
-### Community Module
+### 3. Community Module
 
 - You can use some community module for custom use 
 - Instead of using  mysql_db normal -> we use => community.mysql.mysql_db:
@@ -243,4 +245,44 @@ db01                       : ok=4    changed=1    unreachable=0    failed=1    s
 ```bash
 ansible-galaxy collection install community.mysql
 ```
-- Using new file
+
+### 4. Ansible Configuration
+
+- when you want to using specific config for variable, ...
+- you can override it by default ANSIBLE_CONFIG
+- The file **_ansible.cfg_** (you put in current directory, same with inventory)
+
+- **The order of ansible config (precedence order):**
+  - 1 - ANSIBLE_CONFIG - env var if set
+  - 2 - ansible.cfg (curr dir)
+  - 3 - ~/.ansible/cfg (in the home dir)
+  - 4 - /ect/ansible/ansible.cfg 
+
+- You can check which file is used with (_ansible --version_) or (*ansible-config dump --only-changed*):
+```bash
+ubuntu@ip-172-31-0-175:~/project/sample3$ ansible --version
+ansible [core 2.19.5]
+  config file = /home/ubuntu/project/sample3/ansible.cfg
+  configured module search path = ['/home/ubuntu/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python3/dist-packages/ansible
+  ansible collection location = /home/ubuntu/.ansible/collections:/usr/share/ansible/collections
+  executable location = /usr/bin/ansible
+  python version = 3.12.3 (main, Nov  6 2025, 13:44:16) [GCC 13.3.0] (/usr/bin/python3)
+  jinja version = 3.1.2
+  pyyaml version = 6.0.1 (with libyaml v0.2.5)
+```
+
+- After that -> you just using like this to execute: 
+```bash
+ubuntu@ip-172-31-0-175:~/project/sample3$ ansible-playbook db.yaml 
+[WARNING]: log file at '/var/log/ansible.log' is not writeable and we cannot create it, aborting
+...
+PLAY RECAP *********************************************************************
+db01                       : ok=6    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+```
+
+- But you can see the file log here but you need to aDD:
+```bash
+sudo touch /var/log/ansible.log
+sudo chown ubuntu:ubuntu /var/log/ansible.log
+```
