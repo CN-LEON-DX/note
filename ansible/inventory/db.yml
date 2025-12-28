@@ -2,7 +2,15 @@
 - name: DB server setup
   hosts: dbservers
   become: yes
+  vars:
+    dbname: electric
+    dbuser: current
+    dbpassword: fuzzyfox
   tasks:
+    - debug:
+        msg: "The db name is {{dbname}}"
+    - debug:
+        var: dbname
     - name: install maria db server
       ansible.builtin.yum:
         name: mariadb-server
@@ -18,14 +26,14 @@
         enabled: yes
     - name: create new database 'accounts'
       community.mysql.mysql_db:
-        name: accounts
+        name: "{{ dbname }}"
         state: present
         login_unix_socket: /var/lib/mysql/mysql.sock
 
     - name: create new database user 'accounts'
       community.mysql.mysql_user:
-        name: dev
-        password: 'admin123'
+        name: "{{ dbuser }}"
+        password: "{{ dbpassword }}"
         priv: '*.*:ALL'
         state: present
         login_unix_socket: /var/lib/mysql/mysql.sock

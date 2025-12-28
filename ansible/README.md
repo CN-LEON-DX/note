@@ -16,7 +16,7 @@ sudo apt install ansible
 - Make file inventory and test connect private with in the private network
 ```bash
 ubuntu@ip-172-31-0-175:~/project/sample1$ chmod 400 clientkey.pem 
-ubuntu@ip-172-31-0-175:~/project/sample1$ ansible web01 -m ping -i inventory
+ubuntu@ip-172-31-0-175:~/project/sample1$ ansible web01 -m ping -i inventory`
 [WARNING]: Host 'web01' is using the discovered Python interpreter at '/usr/bin/python3.9', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
 web01 | SUCCESS => {
     "ansible_facts": {
@@ -25,7 +25,7 @@ web01 | SUCCESS => {
     "changed": false,
     "ping": "pong"
 }
-ubuntu@ip-172-31-0-175:~/project/sample1$ cat inventory 
+ubuntu@ip-172-31-0-175:~/project/sample1$ cat inventory` 
 all:
     hosts:
         web01:
@@ -70,11 +70,11 @@ ssh_args = -C -o ControlMaster=auto -o ControlPersist=60s -o StrictHostKeyChecki
 ```
 - Test all connection:
 ```bash
-ansible all -m ping -i inventory
+ansible all -m ping -i inventory`
 ```
 - Ad-hoc command (you need to pass --become to ensure it have sudo privilege:
 ```bash
-ubuntu@ip-172-31-0-175:~/project/sample1$ ansible web01 -m ansible.builtin.yum -a "name=httpd state=present" -i inventory --become
+ubuntu@ip-172-31-0-175:~/project/sample1$ ansible web01 -m ansible.builtin.yum -a "name=httpd state=present" -i inventory` --become
 [WARNING]: Host 'web01' is using the discovered Python interpreter at '/usr/bin/python3.9', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
 web01 | CHANGED => {
     "ansible_facts": {
@@ -104,12 +104,12 @@ web01 | CHANGED => {
 
 - Adhoc with service builtin
 ```bash
-ubuntu@ip-172-31-0-175:~/project/sample1$ ansible webservers -m ansible.builtin.service -a "name=httpd state=started enabled=yes" -i inventory --become
+ubuntu@ip-172-31-0-175:~/project/sample1$ ansible webservers -m ansible.builtin.service -a "name=httpd state=started enabled=yes" -i inventory` --become
 ```
 
 - Copy file to the server this should look like this:
 ```bash
-ubuntu@ip-172-31-0-175:~/project/sample1$ ansible webservers -m ansible.builtin.copy -a "src=index.html dest=/var/www/html/index.html" -i inventory --become
+ubuntu@ip-172-31-0-175:~/project/sample1$ ansible webservers -m ansible.builtin.copy -a "src=index.html dest=/var/www/html/index.html" -i inventory` --become
 [WARNING]: Host 'web02' is using the discovered Python interpreter at '/usr/bin/python3.9', but future installation of another Python interpreter could cause a different interpreter to be discovered. See https://docs.ansible.com/ansible-core/2.19/reference_appendices/interpreter_discovery.html for more information.
 web02 | CHANGED => {
     "ansible_facts": {
@@ -160,23 +160,23 @@ web02 | CHANGED => {
 
 - Playbook run:
 ```bash
-ansible-playbook -i inventory web-db.yaml
-ansible-playbook -i inventory web-db.yaml -vansible-playbook -i inventory web-db.yaml -v
+ansible-playbook -i inventory` web-db.yaml
+ansible-playbook -i inventory` web-db.yaml -vansible-playbook -i inventory` web-db.yaml -v
 ```
 - You can run either -v or more -vvv for more detail logs
 - Check SYNTAX:
 ```bash
-ubuntu@ip-172-31-0-175:~/project/sample1$ ansible-playbook -i inventory web-db.yaml --syntax-check
+ubuntu@ip-172-31-0-175:~/project/sample1$ ansible-playbook -i inventory` web-db.yaml --syntax-check
 playbook: web-db.yaml
 ```
 - DRY-RUN check mode (like experiment) - close to actual run but - maybe it fail in dry run -> maybe it run in actual-run ;(:
 ```bash
-ansible-playbook -i inventory web-db.yaml -C
+ansible-playbook -i inventory` web-db.yaml -C
 ```
 
 - CREATE NEW DB in MYSQL (you can get error like this):
 ```bash
-ubuntu@ip-172-31-0-175:~/project/sample3$ ansible-playbook -i inventory db.yaml 
+ubuntu@ip-172-31-0-175:~/project/sample3$ ansible-playbook -i inventory` db.yaml 
 [ERROR]: Task failed: Module failed: A MySQL module is required: for Python 2.7 either PyMySQL, or MySQL-python, or for Python 3.X mysqlclient or PyMySQL. Consider setting ansible_python_interpreter to use the intended Python version.
 Origin: /home/ubuntu/project/sample3/db.yaml:15:7
 
@@ -286,3 +286,161 @@ db01                       : ok=6    changed=0    unreachable=0    failed=0    s
 sudo touch /var/log/ansible.log
 sudo chown ubuntu:ubuntu /var/log/ansible.log
 ```
+
+### 5. Variables and debug
+
+- Store output - register module
+- Step:
+  + Module execute -> Play book task
+  + Return output (JSON)
+  + Store output (in vars)
+  + Use variable (task/print it)
+
+- Some fact variable:
+  + ansible_os_family
+  + ansible_devices
+  + ansible_architecture
+  + ansible_kernel
+  + ansible_default_ipv4
+
+- You can DEBUG var with: debug property:
+```bash
+---
+- name: DB server setup
+  hosts: dbservers
+  become: yes
+  vars:
+    dbname: electric
+    dbuser: current
+    dbpassword: fuzzyfox
+  tasks:
+    - debug:
+        msg: "The db name is {{dbname}}"
+    - debug:
+        var: dbname
+
+TASK [debug] *******************************************************************
+ok: [db01] => {
+    "msg": "The db name is electric"
+}
+
+TASK [debug] *******************************************************************
+ok: [db01] => {
+    "dbname": "electric"
+}
+```
+
+### 6. Group & Host variables
+
+- Precedence
+  - 1 - command line -> -e USRNAME=abc
+  - 2 - var in playbook file -> which file you run on 
+  - 3 - host_vars -> folder where you store config of host
+  - 4 - group_vars -> folder where you store var for all member in group
+
+- NOTE: if you store var in somewhere else -> we can use:
+```bash
+- host: all 
+  remote_user: root
+  vars_files:
+    - /vars/external_vars.yml
+```
+
+### FACTs variable
+- IS the variable automatically gathering the data about HOST 
+- When you running the ansible - PLAYBOOK
+- And stored them into VAR:
+
+```bash
+ansible_facts:
+  ansible_all_ipv4_addresses: ["172.31.1.89"]
+  ansible_architecture: x86_64
+  ansible_distribution: Amazon
+  ansible_distribution_version: "2023"
+  ansible_hostname: ip-172-31-1-89
+  ansible_memtotal_mb: 2048
+  ansible_processor: ["Intel(R) Xeon(R) CPU E5-2676 v3 @ 2.40GHz"]
+  ansible_python_version: "3.9.16"
+  ansible_mounts: [ ... ]  
+  ansible_fips: false
+  ...
+```
+
+- Find OS:
+```bash
+ubuntu@ip-172-31-0-175:~/project/sample4$ cat print_fact.yml 
+---
+- name: print facts
+  hosts: all
+  tasks:
+    - name: print os
+      debug:
+        var: ansible_distribution
+ubuntu@ip-172-31-0-175:~/project/sample4$ ansible-playbook print_fact.yml
+...
+TASK [print os] ******************************************************************************************************************************************************************************
+ok: [web01] => {
+    "ansible_distribution": "CentOS"
+}
+ok: [web02] => {
+    "ansible_distribution": "CentOS"
+}
+ok: [db01] => {
+    "ansible_distribution": "CentOS"
+}
+
+PLAY RECAP ***********************************************************************************************************************************************************************************
+db01                       : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+web01                      : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+web02                      : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+```
+- You can turn off gathering by using: **gather_facts: False**
+
+### 7. Decision Making
+
+- You can add new Ubuntu to test
+```bash
+---
+- name: privisionning server
+  hosts: all
+  become: yes
+  tasks:
+    - name: install NTP agent on centos
+      yum:
+        name: chrony
+        state: present
+      when: ansible_distribution == "CentOS"
+    - name: install npt agent on ubuntu
+      apt:
+        name: ntp
+        state: present
+      when: ansible_distribution == "Ubuntu"
+    
+    - name: Start the service on CentOS
+      service:
+        name: chronyd
+        state: started
+        enabled: yes
+      when: ansible_distribution == "CentOS"
+     
+    - name: Start the service on Ubuntu
+      service:
+        name: ntp
+        state: started
+        enabled: yes
+      when: ansible_distribution == "Ubuntu"
+```
+- These topic we will read in docs:
+### 8. Files
+https://docs.ansible.com/projects/ansible/latest/collections/ansible/builtin/file_module.html
+https://labex.io/tutorials/ansible-ansible-file-module-289654
+### 9. Handlers
+- Sometimes you want a task to run only when a change is made on a machine. 
+- For example, you may want to restart a service if a task updates the configuration of that service, but not if the configuration is unchanged. 
+- Ansible uses handlers to address this use case.
+- Handlers are tasks that only run when notified.
+https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_handlers.html#handlers
+### 10. Roles
+- Roles let you automatically load related vars, files, tasks, handlers, and other Ansible artifacts based on a known file structure. 
+- After you group your content into roles, you can easily reuse them and share them with other users.
+https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_reuse_roles.html
