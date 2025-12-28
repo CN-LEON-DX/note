@@ -444,3 +444,5 @@ https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_handle
 - Roles let you automatically load related vars, files, tasks, handlers, and other Ansible artifacts based on a known file structure. 
 - After you group your content into roles, you can easily reuse them and share them with other users.
 https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_reuse_roles.html
+
+- The struture in roles you must following with -> otherwise -> it not working properly ;(
