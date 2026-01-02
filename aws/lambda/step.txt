@@ -1,0 +1,8 @@
+1. create sns to send mail
+2. create Policy with specific in iam-role-for-lambda.json put into Policy (you must change some infor to make it run acc id, sns name, ...)
+3. create Role -> for lambda -> with name permission was created
+4. create Function
+5. using existing Role
+6. change timeout to -> 5 min if your app big
+7. paste my code and create new event
+8. also you can use EventBrigde to trigger the lamda function
