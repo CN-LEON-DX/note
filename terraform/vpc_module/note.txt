@@ -1,0 +1,2 @@
+path config awslogs for cloudwatch in:
+/var/awslogs/etc/awslogs.conf
